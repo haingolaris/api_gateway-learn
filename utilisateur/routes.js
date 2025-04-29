@@ -13,12 +13,8 @@ router.get('/', (req, res) => {
   db.query('SELECT * FROM Utilisateur', (err, results) => {
     if (err) {
       console.error('Database error:', err);
-      return res.status(500).json({ 
-        error: 'Database error',
-        details: err.message 
-      });
+      return res.status(500).json({ error: 'Database error', details: err.message });
     }
-    res.set('Content-Type', 'application/json');
     res.json(results);
   });
 });
@@ -27,7 +23,6 @@ router.get('/', (req, res) => {
 router.post('/', (req, res) => {
   const { utilisateur_mail, utilisateur_mdp } = req.body;
   
-  // Validation basique
   if (!utilisateur_mail || !utilisateur_mdp) {
     return res.status(400).json({
       error: 'Missing required fields',
@@ -41,21 +36,35 @@ router.post('/', (req, res) => {
     (err, result) => {
       if (err) {
         console.error('Insert error:', err);
-        return res.status(500).json({
-          error: 'Insert failed',
-          details: err.message,
-          code: err.code
-        });
+        return res.status(500).json({ error: 'Insert failed', details: err.message, code: err.code });
       }
-      
-      res.status(201)
-         .set('Content-Type', 'application/json')
-         .json({
-           id: result.insertId,
-           message: 'User created'
-         });
+      res.status(201).json({ id: result.insertId, message: 'Utilisateur enregistré' });
     }
   );
+});
+
+// UPDATE user
+router.put('/:utilisateur_id', (req, res) => {
+  const utilisateur_id = req.params.utilisateur_id;
+  const { utilisateur_mail, utilisateur_mdp } = req.body;
+  
+  db.query(
+    'UPDATE Utilisateur SET utilisateur_mail = ?, utilisateur_mdp = ? WHERE id = ?',
+    [utilisateur_mail, utilisateur_mdp, utilisateur_id],
+    (err, result) => {
+      if (err) return res.sendStatus(500);
+      res.json({ message: 'Utilisateur mis à jour avec succès.' });
+    }
+  );
+});
+
+// DELETE user
+router.delete('/:utilisateur_id', (req, res) => {
+  const utilisateur_id = req.params.utilisateur_id;
+  db.query('DELETE FROM Utilisateur WHERE id = ?', [utilisateur_id], (err, result) => {
+    if (err) return res.sendStatus(500);
+    res.json({ message: 'Utilisateur supprimé avec succès.' });
+  });
 });
 
 module.exports = router;
